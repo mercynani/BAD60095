@@ -23,8 +23,38 @@ Traveldata
 
 
 ```{r}
-air_pre911.ts <- ts(Traveldata$Air, start = c(1990,1), end = c(2001,8), freq = 12)
+#pre-event time series for Air 
 
+air_pre911.ts <- ts(Traveldata$Air, start = c(1990,1), end = c(2001,8), freq = 12)
+plot(air_pre911.ts, xlab = "Time", ylab = "Air.RPM..000s.", ylim = c(29000000, 70000000), bty = "l")
+
+
+```
+```{r}
+#pre-even time series for Rail
+pre_9_11_rail <- ts(sept_11$Rail, start = c(1990, 1), end = c(2001, 8), freq = 12)
+plot(pre_9_11_rail, xlab = "Time", ylab = "Rail PM", ylim = c(300000000, 700000000), bty = "l")
+```
+
+
+```{r}
+# Pre-event car time series plot
+pre_9_11_car <- ts(sept_11$VMT, start = c(1990, 1), end = c(2001, 8), freq = 12)
+plot(pre_9_11_car, xlab = "Time", ylab = "Car VMT", ylim = c(150, 262), bty = "l")
+```
+
+Time series components appear in all three plots. The air and car plots appear to have an upward linear trend, while the rail plots appear to have an exponential trend.
+These plots demonstrate all three time series components: Level, Trend, and Seasonality.
+We see fairly pronounced seasonality with all three time series, but different trend shapes at play:
+
+```{r}
+# Visualizing Air RPM Time Series
+air_seasonality <- stl(pre_9_11_air, s.window = "period")
+plot(air_seasonality)
+```
+
+
+```{r}
 
 ```
 
