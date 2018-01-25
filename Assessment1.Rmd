@@ -5,15 +5,12 @@ By: "Mercy Nani"
 
 
 1. Is the goal of this study descriptive or predictive?
-The purpose of this study was to provide a better understanding of the patterns that took place after 9/11 so the goal of this study is descriptive. 
+The purpose of this study was to provide a better understanding of passenger travel behavior patterns that took place after 9/11. since it is tryinf to explain the  patterns that took place the goal of this study is descriptive. 
 
-2. Plot each of the three pre-event time series (Air, Rail, Car).
-What time series components appear from the plot?
-What type of trend appears? Change the scale of the series, add trendlines and suppress seasonality to better visualize the trend pattern.
+2. Plot each of the three pre-event time series (Air, Rail, Car)
 ```{r}
 library(forecast)
 ```
-
 
 
 ```{r}
@@ -25,35 +22,63 @@ Traveldata
 ```{r}
 #pre-event time series for Air 
 
-air_pre911.ts <- ts(Traveldata$Air, start = c(1990,1), end = c(2001,8), freq = 12)
-plot(air_pre911.ts, xlab = "Time", ylab = "Air.RPM..000s.", ylim = c(29000000, 70000000), bty = "l")
+Air_pre911.ts <- ts(Traveldata$Air,  start = c(1990, 1), end = c(2001, 8), frequency = 12)
+Air_pre911.plot <- plot(Air_pre911.ts, ylab = "Air Passenger Miles(Millions)", type="l", bty="l",  main = "Airline Revenue Passenger Miles before 9/11")
 
 
 ```
 ```{r}
 #pre-even time series for Rail
-pre_9_11_rail <- ts(sept_11$Rail, start = c(1990, 1), end = c(2001, 8), freq = 12)
-plot(pre_9_11_rail, xlab = "Time", ylab = "Rail PM", ylim = c(300000000, 700000000), bty = "l")
+
+Rail.ts <- ts(Traveldata$Rail,  start = c(1990, 1), end = c(2001, 8), frequency = 12)
+Rail.plot <- plot(Rail.ts, ylab = "Rail Passenger Miles (Millions)", type="l", bty="l", main = "Rail Passenger Miles before 9/11")
+
+
 ```
 
 
 ```{r}
 # Pre-event car time series plot
-pre_9_11_car <- ts(sept_11$VMT, start = c(1990, 1), end = c(2001, 8), freq = 12)
-plot(pre_9_11_car, xlab = "Time", ylab = "Car VMT", ylim = c(150, 262), bty = "l")
+vehicle.ts<- ts(Traveldata$VMT, start = c(1990, 1), end = c(2001,8), frequency = 12)
+VMTPlot<- plot(vehicle.ts, ylab = "VMT Passenger Miles", type="l", bty="l", main = "Vehicle Passenger Miles pre 9/11")  
+  
 ```
+1) what time series components appear fom the plot?
 
 Time series components appear in all three plots. The air and car plots appear to have an upward linear trend, while the rail plots appear to have an exponential trend.
 These plots demonstrate all three time series components: Level, Trend, and Seasonality.
-We see fairly pronounced seasonality with all three time series, but different trend shapes at play:
+
+
+
+Air Plots
+```{r}
+airlinear <- tslm(Air_pre911.ts   ~ trend)
+plot(Air_pre911.ts , xlab = "Year", ylab = "Airline Revenue Passenger Miles", bty = "l", main = "Trend: Air Revenue Passenger Miles")
+lines(airlinear$fitted, lwd=2)
+```
+```{r}
+yearlyAir <- aggregate(Air_pre911.ts, nfrequency=1, FUN=sum)
+plot(yearlyAir, xlab = "Year", ylab = "Air Passenger Miles",bty="l", main = "Yearly Air Miles with Seasonality Suppressed")
+```
 
 ```{r}
-# Visualizing Air RPM Time Series
-air_seasonality <- stl(pre_9_11_air, s.window = "period")
-plot(air_seasonality)
+air.ts.zoom <- window(Air_pre911.ts, start = c(1999, 1), end = c(2000, 12))
+plot(air.ts.zoom, xlab = "Year", ylab = "Airline Revenue Passenger Miles", bty = "l", main = "Zoom: Air Revenue Passenger Miles")
+```
+
+```{r}
+ggseasonplot(Air_pre911.ts, col =rainbow(12), year.labels=TRUE, ylab = "Air Passenger Revenue Miles", main = "Seasonal Plot for Air Passenger Revenue")
 ```
 
 
+```{r}
+# Visualizing Air RPM Time Series
+air_seasonality <- stl(Air_pre911.ts, s.window = "period")
+plot(air_seasonality)
+```
+
+What time series components appear from the plot?
+What type of trend appears? Change the scale of the series, add trendlines and suppress seasonality to better visualize the trend pattern.
 ```{r}
 
 ```
