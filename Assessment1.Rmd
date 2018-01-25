@@ -1,5 +1,5 @@
 ---
-title: "Time Series Assignment 1" 
+Title: "Time Series Assignment 1" 
 By: "Mercy Nani"
 ---
 
@@ -77,9 +77,54 @@ air_seasonality <- stl(Air_pre911.ts, s.window = "period")
 plot(air_seasonality)
 ```
 
-What time series components appear from the plot?
-What type of trend appears? Change the scale of the series, add trendlines and suppress seasonality to better visualize the trend pattern.
-```{r}
 
+Rail Plots 
+#shows a downward trend and seasonality
+```{r}
+Rail.ts <- ts(Traveldata$Rail, start = c(1990, 1), end = c(2001, 8), frequency = 12)
+trainlinear <- tslm(Rail.ts ~ trend)
+plot(Rail.ts, xlab = "Year", ylab = "Rail Passenger Miles", bty = "l", main = "Trend: Rail Passenger Miles")
+lines(trainlinear$fitted, lwd = 2)
+
+```
+
+```{r}
+quarterlyRail <- aggregate(Rail.ts, nfrequency=4, FUN=sum)
+plot(quarterlyRail, xlab = "Year", ylab = "Rail Passenger Miles", bty="l", main = "Rail Miles by Quarter with Seasonality Suppressed")
+```
+
+```{r}
+ggseasonplot(Rail.ts, col =rainbow(12), year.labels=TRUE, ylab = "Rail Passenger Revenue Miles", main = "Season Plot for Rail Miles Travelled")
+```
+
+```{r}
+Rail.ts.zoom <- window(Rail.ts, start = c(1998, 1), end = c(2000, 12))
+plot(Rail.ts.zoom, xlab = "Year", ylab = "Rail Passenger Miles", bty = "l", main = "Zoom: Rail Passenger Miles")
+```
+
+Car Plots: show an upward trend and seasonality
+```{r}
+carlinear <- tslm(vehicle.ts ~ trend)
+plot(vehicle.ts, xlab = "Year", ylab = "Car Passenger Miles", bty = "l", main = "Trend: Vehicle Passenger Miles")
+lines(carlinear$fitted, lwd = 2)
+```
+
+```{r}
+quarterlyAuto <- aggregate(vehicle.ts, nfrequency=4, FUN=sum)
+plot(quarterlyAuto, xlab = "Year", ylab = "Car Passenger Miles",main = "Quarterly Vehicle with Seasonality Suppressed", bty="l")
+```
+
+```{r}
+yearlyAuto <- aggregate(vehicle.ts, nfrequency=1, FUN=sum)
+plot(yearlyAuto, xlab = "Year", ylab = "Car Passenger Miles", main = "Yearly Car with Seasonality Suppressed",  bty="l")
+```
+
+```{r}
+ggseasonplot(vehicle.ts, col =rainbow(12), year.labels=TRUE, ylab = "Car Passenger Miles")
+```
+
+```{r}
+car.ts.zoom <- window(vehicle.ts, start = c(1998, 1), end = c(2000, 12))
+plot(car.ts.zoom, xlab = "Year", ylab = "Car Passenger Miles", bty = "l", main = "Zoom: Car Passenger Miles")
 ```
 
