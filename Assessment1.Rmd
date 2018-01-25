@@ -1,0 +1,30 @@
+---
+title: "Time Series Assignment 1" 
+By: "Mercy Nani"
+---
+
+
+1. Is the goal of this study descriptive or predictive?
+The purpose of this study was to provide a better understanding of the patterns that took place after 9/11 so the goal of this study is descriptive. 
+
+2. Plot each of the three pre-event time series (Air, Rail, Car).
+What time series components appear from the plot?
+What type of trend appears? Change the scale of the series, add trendlines and suppress seasonality to better visualize the trend pattern.
+```{r}
+library(forecast)
+```
+
+
+
+```{r}
+Traveldata <- read.csv("Sept11Travel.csv")
+Traveldata 
+```
+
+
+```{r}
+air_pre911.ts <- ts(Traveldata$Air, start = c(1990,1), end = c(2001,8), freq = 12)
+
+
+```
+
