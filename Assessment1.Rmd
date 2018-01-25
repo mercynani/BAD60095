@@ -5,7 +5,7 @@ By: "Mercy Nani"
 
 
 1. Is the goal of this study descriptive or predictive?
-The purpose of this study was to provide a better understanding of passenger travel behavior patterns that took place after 9/11. since it is tryinf to explain the  patterns that took place the goal of this study is descriptive. 
+The purpose of this study was to provide a better understanding of passenger travel behavior patterns that took place after 9/11. Since it is trying to explain the  patterns that took place the goal of this study is descriptive. 
 
 2. Plot each of the three pre-event time series (Air, Rail, Car)
 ```{r}
@@ -28,7 +28,7 @@ Air_pre911.plot <- plot(Air_pre911.ts, ylab = "Air Passenger Miles(Millions)", t
 
 ```
 ```{r}
-#pre-even time series for Rail
+#pre-event time series for Rail
 
 Rail.ts <- ts(Traveldata$Rail,  start = c(1990, 1), end = c(2001, 8), frequency = 12)
 Rail.plot <- plot(Rail.ts, ylab = "Rail Passenger Miles (Millions)", type="l", bty="l", main = "Rail Passenger Miles before 9/11")
@@ -38,30 +38,33 @@ Rail.plot <- plot(Rail.ts, ylab = "Rail Passenger Miles (Millions)", type="l", b
 
 
 ```{r}
-# Pre-event car time series plot
+# Pre-event time series for Car
 vehicle.ts<- ts(Traveldata$VMT, start = c(1990, 1), end = c(2001,8), frequency = 12)
-VMTPlot<- plot(vehicle.ts, ylab = "VMT Passenger Miles", type="l", bty="l", main = "Vehicle Passenger Miles pre 9/11")  
+VMTPlot<- plot(vehicle.ts, ylab = "Car Passenger Miles", type="l", bty="l", main = "Vehicle Passenger Miles pre 9/11")  
   
 ```
-1) what time series components appear fom the plot?
+1) what time series components appear from the plot?
 
 Time series components appear in all three plots. The air and car plots appear to have an upward linear trend, while the rail plots appear to have an exponential trend.
-These plots demonstrate all three time series components: Level, Trend, and Seasonality.
+These plots demonstrate all three time series components: Level, Trend, and Seasonality.Seasonality is evident when zooming and in the season plots (in the plots below).
 
 
 
-Air Plots
+Air Plots: An upward, linear trend and seasonality. 
 ```{r}
 airlinear <- tslm(Air_pre911.ts   ~ trend)
 plot(Air_pre911.ts , xlab = "Year", ylab = "Airline Revenue Passenger Miles", bty = "l", main = "Trend: Air Revenue Passenger Miles")
 lines(airlinear$fitted, lwd=2)
 ```
+
+
 ```{r}
 yearlyAir <- aggregate(Air_pre911.ts, nfrequency=1, FUN=sum)
 plot(yearlyAir, xlab = "Year", ylab = "Air Passenger Miles",bty="l", main = "Yearly Air Miles with Seasonality Suppressed")
 ```
 
 ```{r}
+#zooming in 
 air.ts.zoom <- window(Air_pre911.ts, start = c(1999, 1), end = c(2000, 12))
 plot(air.ts.zoom, xlab = "Year", ylab = "Airline Revenue Passenger Miles", bty = "l", main = "Zoom: Air Revenue Passenger Miles")
 ```
@@ -81,6 +84,7 @@ plot(air_seasonality)
 Rail Plots 
 #shows a downward trend and seasonality
 ```{r}
+#show downward linear trend
 Rail.ts <- ts(Traveldata$Rail, start = c(1990, 1), end = c(2001, 8), frequency = 12)
 trainlinear <- tslm(Rail.ts ~ trend)
 plot(Rail.ts, xlab = "Year", ylab = "Rail Passenger Miles", bty = "l", main = "Trend: Rail Passenger Miles")
@@ -102,6 +106,8 @@ Rail.ts.zoom <- window(Rail.ts, start = c(1998, 1), end = c(2000, 12))
 plot(Rail.ts.zoom, xlab = "Year", ylab = "Rail Passenger Miles", bty = "l", main = "Zoom: Rail Passenger Miles")
 ```
 
+
+
 Car Plots: show an upward trend and seasonality
 ```{r}
 carlinear <- tslm(vehicle.ts ~ trend)
@@ -120,7 +126,7 @@ plot(yearlyAuto, xlab = "Year", ylab = "Car Passenger Miles", main = "Yearly Car
 ```
 
 ```{r}
-ggseasonplot(vehicle.ts, col =rainbow(12), year.labels=TRUE, ylab = "Car Passenger Miles")
+ggseasonplot(vehicle.ts, col =rainbow(12), year.labels=TRUE, ylab = "Car Passenger Miles", main = "Season Plot for Vehicle Miles Travelled", bty="l")
 ```
 
 ```{r}
