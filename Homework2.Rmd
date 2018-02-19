@@ -9,37 +9,77 @@ Traveldata <- read.csv("Sept11Travel.csv")
 Traveldata 
 ```
 
+```{r}
+library(forecast)
+set.seed(2018)
+```
+
+
 1. Plot the pre-event AIR time series. What time series components appear?
 #Answer: There is an upward linear trend and seasonality. 
-
+Create a shorter time series(2001, 8)
 ```{r}
 #pre-event time series for Air 
+Air.ts <- ts(Traveldata$Air,  start = c(1990, 1), end = c(2001, 8), frequency = 12)
+Air.ts
+Air.plot <- plot(Air.ts, ylab = "Air Passenger Miles(Millions)", type="l", bty="l",  main = "Airline Revenue Passenger Miles pre 9/11")
 
-Air_pre911.ts <- ts(Traveldata$Air,  start = c(1990, 1), end = c(2004, 4), frequency = 12)
-Air_pre911.plot <- plot(Air_pre911.ts, ylab = "Air Passenger Miles(Millions)", type="l", bty="l",  main = "Airline Revenue Passenger Miles before 9/11")
+#pre-event time series for Rail
+Rail.ts <- ts(Traveldata$Rail,  start = c(1990, 1), end = c(2001, 8), frequency = 12)
+Rail.ts
+Rail.plot <- plot(Rail.ts, ylab = "Rail Passenger Miles (Millions)", type="l", bty="l", main = "Rail Passenger Miles before 9/11")
+
+# Pre-event time series for Car
+Vehicle.ts<- ts(Traveldata$VMT, start = c(1990, 1), end = c(2001,8), frequency = 12)
+Vehicle.ts
+VMTPlot<- plot(vehicle.ts, ylab = "Car Passenger Miles", type="l", bty="l", main = "Vehicle Passenger Miles pre 9/11")  
 ```
 
 2. The following figure shows a time plot of the seasonally adjusted pre-September-11 AIR series. Which of the following methods would be adequate for forecasting the series shown in the figure?
-#Answer: Linear Regression Model with trend
+#Answer: Linear Regression Model with trend and seasonality
         
         
 
 3. Specify a linear regression model for the AIR series that would produce a seasonally adjusted series similar to the one shown in the figure below, with multiplicative seasonality. What is the outcome variable? What are the predictors?
 #Answer: Outcome variable: Seasonally adjusted Time 
-#Predictors:  trend and season
+#        Predictors:  Trend and season
 
 ```{r}
+# split the data into training and validation
+# suppress seasonality using the decompose function
+
+require(xts)
+library(scales)
+Decompose_AirMultiplicative.ts=decompose(Air.ts,"multiplicative")
+Adjusted_Air_multiplicative.ts <- Air.ts-Decompose_AirMultiplicative.ts$seasonal  #With Adjusted seasonality
+#PCP <- ts(Adjusted_Air.ts/1000000, start = c(1991,1), end =c(2001,09), frequency = 12)
+plot(Adjusted_Air_multiplicative.ts/1000000) 
+
+Decompose_Air_Additive.ts=decompose(Air.ts,"additive")
+Adjusted_Air_Additive.ts <- Air.ts-Decompose_Air_Additive.ts$seasonal  #With Adjusted seasonality
+#PCP <- ts(Adjusted_Air.ts/1000000, start = c(1991,1), end =c(2001,09), frequency = 12)
+plot(Adjusted_Air_Additive.ts/1000000) 
+
+# Using  Decompose function to suppress Seasonality for Rail data
+Decompose_Rail.ts=decompose(Rail.ts,"additive")
+Adjusted_Rail.ts <- Rail.ts-Decompose_Rail.ts$seasonal  #With Adjusted seasonality
+plot(Adjusted_Rail.ts/1000000) 
+
+# Using  Decompose function to suppress Seasonality for Vehicle data
+Decompose_Vehicle.ts=decompose(Vehicle.ts,"additive")
+Adjusted_Vehicle.ts <- Vehicle.ts-Decompose_Vehicle.ts$seasonal  #With Adjusted seasonality
+plot(Adjusted_Vehicle.ts) 
 
 ```
 
 
 4. Run the regression model from (3). Remember to use only pre-event data.
        What can we learn from the statistical insignificance of the coefficients for October and September?
-#the statistical insignificance of the coefficients indicate that autocorrelation exists inthe dataset
-The predicted value for January 1990 was 44212445.07
-The residual is 44.21244507 – 35.153577 = 9.058868067 air revenue persenger miles
+#the statistical insignificance of the coefficients indicate that autocorrelation exists in the dataset and that the data doesnt consider october and sept 
 
-The actual value of AIR (air revenue passenger miles) in January 1990 was 35.153577 billion. What is the residual for this month, using the regression model? Report the residual in terms of air revenue passenger miles.
+The residual is 1517000 
+
+
 ```{r}
 #Adding trend or season or Trend+season
 AirMulti.lm <- tslm(Adjusted_Air_multiplicative.ts ~ trend)
@@ -154,5 +194,6 @@ arrows(2001, 67000000, 1990, 67000000, code = 3, length = 0.1, lwd = 1,angle = 3
 
 
   What can be said about the effect of the September 11 terrorist attack on the three modes of transportation? Discuss the magnitude of the effect, its time span, and any other relevant aspects.
-#It is found that the September 2011 terrorist attack has a great impact on the Air, Rail and Auto. The magnitude of the effect is very high and it reduces the significance of the model
+
+#It is found that the September 2011 terrorist attack has a great impact on the Air and Rail. The magnitude of the effect is very high and it reduces the significance of the model. Vehicle travel did not show a lot of change after 9/11, predicted and actual graph are almosyt similar. 
 
