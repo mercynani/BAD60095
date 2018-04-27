@@ -4,15 +4,15 @@ output: html_notebook
 ---
 Load the folowing libraries
 ```{r}
-#install.packages("caret")
-#install.packages("ggplot2")
-library(plyr)
+library(cluster)
 library(NbClust)
-library(caret)
-library(factoextra)
-library(ggpubr)
-library(dplyr)
-
+library(flexclust)
+library(fMultivar)
+library(ggplot2)
+library(lattice)
+library(gridBase)
+library(gridExtra)
+library(plyr)
 ```
 
 
@@ -93,8 +93,9 @@ barplot(table(nc$Best.n[1,]),
         xlab="Number of Clusters", ylab="Number of criteria",
         main = "Number of clusters chosen by Criteria ")
 
+
 km = kmeans(Purchase_behavior, 5, nstart=25)
-#km
+km
 km$size
 dist(km$centers)
 
@@ -110,89 +111,69 @@ wss[]
 ```
 
 
+K-Means for purchase basis dataset
 ```{r}
-##########FOR PURCHASE BASIS Dataset################
 
 nc1 <- NbClust(data = Purchase_basis,distance = "euclidean", min.nc=2,max.nc=5,method="kmeans",index = "all", alphaBeale = 0.1) 
 
 #Bestnumber of clusters are 2
-
 table(nc1$Best.nc[1,])
 barplot(table(nc1$Best.n[1,]),
-        
         xlab="Number of Clusters", ylab="Number of criteria",
-        
         main = "Number of clusters chosen by Criteria ")
-
 km1 = kmeans(Purchase_basis, 2, nstart=25)
-
-#km1
-
+km1
 km1$size
-
 dist(km1$centers)
-
 fviz_nbclust(Purchase_basis, kmeans, method = "wss") +
-  
   geom_vline(xintercept = 2, linetype = 2)+
-  
   labs(subtitle = "Elbow method")
 
 ```
 
-```{r}
-##########FOR PURCHASE BASIS and Purchase behaviour combined Dataset################
 
-nc2 <- NbClust(data = Normalized_bathSoap1[,c(1:10,13:21,31:45,47)],distance = "euclidean", min.nc=2,max.nc=5,method="kmeans",index = "all", alphaBeale = 0.1) 
+K-Means for purchase bahavior and purchase basis datasets
+```{r}
+nc2 <- NbClust(data = BathSoap2[,c(1:10,13:21,31:45,47)],distance = "euclidean", min.nc=2,max.nc=5,method="kmeans",index = "all", alphaBeale = 0.1) 
 
 #Bestnumber of clusters are 2
-
 table(nc2$Best.nc[1,])
-
 barplot(table(nc2$Best.n[1,]),
-        
         xlab="Number of Clusters", ylab="Number of criteria",
-        
         main = "Number of clusters chosen by Criteria ")
-
-km2 = kmeans(Normalized_bathSoap1[,c(1:10,13:21,31:45,47)], 2, nstart=25)
-
-#km2
-
+km2 = kmeans(BathSoap2[,c(1:10,13:21,31:45,47)], 2, nstart=25)
+km2
 km2$size
-
 dist(km2$centers)
 
-
-
-fviz_nbclust(Normalized_bathSoap1[,c(1:10,13:21,31:45,47)], kmeans, method = "wss") +
-  
+fviz_nbclust(BathSoap2[,c(1:10,13:21,31:45,47)], kmeans, method = "wss") +
   geom_vline(xintercept = 2, linetype = 2)+
-  
   labs(subtitle = "Elbow method")
 
 
 ```
 
 
+Question 2
+To select the best segmentation we have to see the distance between clusters
+looking at all three data sets 
 ```{r}
-##########Comparing all three data frames###################
 
-p1 <- fviz_cluster(km, geom = "point",  data=Purchase_behaviour) + ggtitle("k = 5")
-
+p1 <- fviz_cluster(km, geom = "point",   data=Purchase_behavior) + ggtitle("k = 5")
 p2 <- fviz_cluster(km1, geom = "point",  data = Purchase_basis) + ggtitle("k = 2")
-
-p3 <- fviz_cluster(km2, geom = "point",  data = Normalized_bathSoap1[,c(1:10,13:21,31:45,47)]) + ggtitle("k = 2 for combined data")
+p3 <- fviz_cluster(km2, geom = "point",  data = BathSoap2[,c(1:10,13:21,31:45,47)]) + ggtitle("k = 2 for combined data")
 
 library(gridExtra)
-
 grid.arrange(p1, p2, p3, nrow = 2)
-
-Normalized_bathSoap2<-Normalized_bathSoap1[,c(1:10,13:21,31:45,47)]
+BathSoap3<-BathSoap2[,c(1:10,13:21,31:45,47)]
 
 
 
 ```
+
+Based on this we see that cluster 3 which is a combination of bothe clusters gives the higest degree of separation between clusters making it the best segmentation criteria.
+characteristics of the thrid cluster
+
 
 ```{r}
 #Determining best number of cluster by elbow method
@@ -207,7 +188,7 @@ fviz_nbclust(Normalized_bathSoap2, kmeans, method = "wss")
 
 
 
-Model based clustering. ( https://www.statmethods.net/advstats/cluster.html  )
+
 
 ```{r}
 
@@ -217,23 +198,6 @@ Model based clustering. ( https://www.statmethods.net/advstats/cluster.html  )
 
 library(mclust)
 
-fit <- Mclust(Normalized_bathSoap2)
-
-plot(fit) # plot results
-
-summary(fit) # display the best model
-
-fit$G #shows optimal no of clusters
-
-fviz_mclust(fit, "BIC", palette = "jco")  # For optimal number of clusters
-
-fviz_mclust(fit, "classification", geom = "point",
-            
-            pointsize = 1.5, palette = "jco")
-
-
-
-fviz_mclust(fit, "uncertainty", palette = "jco") # In this uncertainty plot, smaller symbols indicate the less uncertain observations.Moreover there is only 1 larger symbol
 
 
 
@@ -242,33 +206,11 @@ fviz_mclust(fit, "uncertainty", palette = "jco") # In this uncertainty plot, sma
 
 
 ```{r}
-
-# Model Based Clustering on purchase basis# not preferred, has lot of uncertainity
-
-#install.packages("mclust")
-
-library(mclust)
-
-fit1 <- Mclust(Purchase_basis)
-
-plot(fit) # plot results
-
-summary(fit) # display the best model
-
-fit$G #shows optimal no of clusters
-
-fviz_mclust(fit, "BIC", palette = "jco")  # For optimal number of clusters
-
-fviz_mclust(fit, "classification", geom = "point",
-            
-            pointsize = 1.5, palette = "jco")
-
-
-
-fviz_mclust(fit, "uncertainty", palette = "jco") # In this uncertainty plot, smaller symbols indicate the less uncertain observations.Moreover there is only 1 larger symbol
+#Model Prediction using the best cluster on a sample test data of the firrst 40 rows.
+library(FNN)
+soapdata1<-soap.data1[1:40, -c(22:30,46)]
+pred.knn <- get.knnx(fit.km2$centers, soapdata1, 1)$nn.index[,1]
 
 
 
 ```
-```
-
