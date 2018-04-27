@@ -171,46 +171,23 @@ BathSoap3<-BathSoap2[,c(1:10,13:21,31:45,47)]
 
 ```
 
-Based on this we see that cluster 3 which is a combination of bothe clusters gives the higest degree of separation between clusters making it the best segmentation criteria.
+Based on this we see that the cluster with the combined data gives the higest degree of separation between clusters making it the best segmentation criteria.
 characteristics of the thrid cluster
 
-
-```{r}
-#Determining best number of cluster by elbow method
-
-fviz_nbclust(Normalized_bathSoap2, kmeans, method = "wss")
+The third dataset is best to create clusters since,the distance/separation between the clusters is high and there is least overlap between clusters.
 
 
-
-```
-
-#The third dataset is best to create clusters since,the distance/separation between the clusters is high and there is least overlap between clusters.
-
-
-
-
-
-```{r}
-
-# Model Based Clustering
-
-#install.packages("mclust")
-
-library(mclust)
-
-
-
-
-```
 
 
 
 ```{r}
 #Model Prediction using the best cluster on a sample test data of the firrst 40 rows.
+#install.packages("FNN")
+#install.packages("flexclust")
 library(FNN)
-soapdata1<-soap.data1[1:40, -c(22:30,46)]
-pred.knn <- get.knnx(fit.km2$centers, soapdata1, 1)$nn.index[,1]
-
-
+library(flexclust)
+testdata<-BathSoap3[1:40,]
+pred.knn <- get.knnx(km2$centers, testdata, 1)$nn.index[,1]
+pred.knn
 
 ```
