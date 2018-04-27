@@ -1,0 +1,274 @@
+---
+title: "Segmenting Consumers of Bath Soap"
+output: html_notebook
+---
+Load the folowing libraries
+```{r}
+#install.packages("caret")
+#install.packages("ggplot2")
+library(plyr)
+library(NbClust)
+library(caret)
+library(factoextra)
+library(ggpubr)
+library(dplyr)
+
+```
+
+
+Read CSV file into R
+```{r}
+BathSoap <- read.csv("C:/Users/Mercy/Downloads/BathSoap.csv")
+View(BathSoap)
+
+#Data contains the % symbol, so I removed it in excel to make R read it as a numeric variable
+BathSoap1 <- read.csv("C:/Users/Mercy/Downloads/BathSoap1.csv")
+View(BathSoap1)
+```
+
+
+```{r}
+#Graphical representation of missing values
+library(VIM)
+aggr(BathSoap1)
+```
+
+Data preprocessing
+```{r}
+#Data has many missing values so imputation of values was done
+BathSoap1$SEX[BathSoap1$SEX=="0"]<-2 #converted 0 to 2 to represent "female"
+BathSoap1$FEH[BathSoap1$FEH=="0"]<-1 #assuming major population is vegetarian
+BathSoap1$MT[BathSoap1$MT=="0"]<-10 #most common language spoken
+BathSoap1$HS[BathSoap1$HS=="0"]<-5 #average number of people in household
+BathSoap1$EDU[BathSoap1$EDU=="0"]<-5 #majority of student have 12th standard education
+BathSoap1$CS[BathSoap1$CS=="0"]<-1 #majority of people have TV at home
+
+#Nullifyin member ID
+row.names(BathSoap1)<-BathSoap1$Member.id
+BathSoap1$Member.id<-NULL
+BathSoap2<-BathSoap1
+
+#scaling data
+BathSoap2<-lapply(BathSoap2, scale)
+BathSoap2<-as.data.frame(BathSoap2)
+
+#To calculate Brand loyalty Index
+BathSoap2$MaxVolScore<-  apply(BathSoap1[,23:30],1,max)
+BathSoap2$BrandLoyaltyIndex<-0.4 *BathSoap2$No..of.Brands + 0.4*BathSoap2$Brand.Runs + 0.2*BathSoap2$MaxVolScore
+View(BathSoap2)
+
+```
+
+
+```{r}
+#Dividing data into variables describe puchase behaviour and variables that describe the basis for purchase
+Purchase_behavior <- BathSoap2[,c(1:10,13:21,47)]
+Purchase_basis <- BathSoap2[,c(31:45)]
+
+```
+
+
+```{r}
+#Ward-linking cluster on purchase behavior
+
+d <- dist(Purchase_behavior) #Euclidean
+summary(d)
+fit.w <- hclust(d,method="ward.D")
+fit.w$height
+fit.w$order
+plot(fit.w,hang=-1,cex=0.8,main="Ward linking clusters")
+
+```
+
+
+K-Means clustering on purchase behavior dataset
+```{r}
+library(NbClust)
+set.seed(1234)
+nc <- NbClust(data = Purchase_behavior,distance = "euclidean", min.nc=2,max.nc=5,method="kmeans",index = "all", alphaBeale = 0.1)
+
+#Bestnumber of clusters are 5
+table(nc$Best.nc[1,])
+barplot(table(nc$Best.n[1,]),
+        xlab="Number of Clusters", ylab="Number of criteria",
+        main = "Number of clusters chosen by Criteria ")
+
+km = kmeans(Purchase_behavior, 5, nstart=25)
+#km
+km$size
+dist(km$centers)
+
+library(cluster)
+#library(ggpubr)
+fviz_nbclust(Purchase_behavior, kmeans, method = "wss") + geom_vline(xintercept = 5, linetype = 2)+labs(subtitle = "Elbow method")
+wss <- numeric(5)
+for (k in 1:5)
+  wss[k] <- sum(kmeans(Purchase_behavior, centers=k, nstart=25)$withinss)
+plot(1:5,wss,type="b",xlab="Number of Clusters", ylab="Within Sums of squares")
+wss[]
+
+```
+
+
+```{r}
+##########FOR PURCHASE BASIS Dataset################
+
+nc1 <- NbClust(data = Purchase_basis,distance = "euclidean", min.nc=2,max.nc=5,method="kmeans",index = "all", alphaBeale = 0.1) 
+
+#Bestnumber of clusters are 2
+
+table(nc1$Best.nc[1,])
+barplot(table(nc1$Best.n[1,]),
+        
+        xlab="Number of Clusters", ylab="Number of criteria",
+        
+        main = "Number of clusters chosen by Criteria ")
+
+km1 = kmeans(Purchase_basis, 2, nstart=25)
+
+#km1
+
+km1$size
+
+dist(km1$centers)
+
+fviz_nbclust(Purchase_basis, kmeans, method = "wss") +
+  
+  geom_vline(xintercept = 2, linetype = 2)+
+  
+  labs(subtitle = "Elbow method")
+
+```
+
+```{r}
+##########FOR PURCHASE BASIS and Purchase behaviour combined Dataset################
+
+nc2 <- NbClust(data = Normalized_bathSoap1[,c(1:10,13:21,31:45,47)],distance = "euclidean", min.nc=2,max.nc=5,method="kmeans",index = "all", alphaBeale = 0.1) 
+
+#Bestnumber of clusters are 2
+
+table(nc2$Best.nc[1,])
+
+barplot(table(nc2$Best.n[1,]),
+        
+        xlab="Number of Clusters", ylab="Number of criteria",
+        
+        main = "Number of clusters chosen by Criteria ")
+
+km2 = kmeans(Normalized_bathSoap1[,c(1:10,13:21,31:45,47)], 2, nstart=25)
+
+#km2
+
+km2$size
+
+dist(km2$centers)
+
+
+
+fviz_nbclust(Normalized_bathSoap1[,c(1:10,13:21,31:45,47)], kmeans, method = "wss") +
+  
+  geom_vline(xintercept = 2, linetype = 2)+
+  
+  labs(subtitle = "Elbow method")
+
+
+```
+
+
+```{r}
+##########Comparing all three data frames###################
+
+p1 <- fviz_cluster(km, geom = "point",  data=Purchase_behaviour) + ggtitle("k = 5")
+
+p2 <- fviz_cluster(km1, geom = "point",  data = Purchase_basis) + ggtitle("k = 2")
+
+p3 <- fviz_cluster(km2, geom = "point",  data = Normalized_bathSoap1[,c(1:10,13:21,31:45,47)]) + ggtitle("k = 2 for combined data")
+
+library(gridExtra)
+
+grid.arrange(p1, p2, p3, nrow = 2)
+
+Normalized_bathSoap2<-Normalized_bathSoap1[,c(1:10,13:21,31:45,47)]
+
+
+
+```
+
+```{r}
+#Determining best number of cluster by elbow method
+
+fviz_nbclust(Normalized_bathSoap2, kmeans, method = "wss")
+
+
+
+```
+
+#The third dataset is best to create clusters since,the distance/separation between the clusters is high and there is least overlap between clusters.
+
+
+
+Model based clustering. ( https://www.statmethods.net/advstats/cluster.html  )
+
+```{r}
+
+# Model Based Clustering
+
+#install.packages("mclust")
+
+library(mclust)
+
+fit <- Mclust(Normalized_bathSoap2)
+
+plot(fit) # plot results
+
+summary(fit) # display the best model
+
+fit$G #shows optimal no of clusters
+
+fviz_mclust(fit, "BIC", palette = "jco")  # For optimal number of clusters
+
+fviz_mclust(fit, "classification", geom = "point",
+            
+            pointsize = 1.5, palette = "jco")
+
+
+
+fviz_mclust(fit, "uncertainty", palette = "jco") # In this uncertainty plot, smaller symbols indicate the less uncertain observations.Moreover there is only 1 larger symbol
+
+
+
+```
+
+
+
+```{r}
+
+# Model Based Clustering on purchase basis# not preferred, has lot of uncertainity
+
+#install.packages("mclust")
+
+library(mclust)
+
+fit1 <- Mclust(Purchase_basis)
+
+plot(fit) # plot results
+
+summary(fit) # display the best model
+
+fit$G #shows optimal no of clusters
+
+fviz_mclust(fit, "BIC", palette = "jco")  # For optimal number of clusters
+
+fviz_mclust(fit, "classification", geom = "point",
+            
+            pointsize = 1.5, palette = "jco")
+
+
+
+fviz_mclust(fit, "uncertainty", palette = "jco") # In this uncertainty plot, smaller symbols indicate the less uncertain observations.Moreover there is only 1 larger symbol
+
+
+
+```
+```
+
