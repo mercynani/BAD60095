@@ -14,7 +14,7 @@ library(fMultivar)
 library(lattice)
 library(gridBase)
 library(gridExtra)
-install.packages("plyr")
+#install.packages("plyr")
 library(plyr)
 ```
 
