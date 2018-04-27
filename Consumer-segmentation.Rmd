@@ -1,6 +1,8 @@
 ---
 title: "Segmenting Consumers of Bath Soap"
-output: html_notebook
+output:
+  html_document: default
+  html_notebook: default
 ---
 Load the folowing libraries
 ```{r}
@@ -8,10 +10,11 @@ library(cluster)
 library(NbClust)
 library(flexclust)
 library(fMultivar)
-library(ggplot2)
+#library(ggplot2)
 library(lattice)
 library(gridBase)
 library(gridExtra)
+install.packages("plyr")
 library(plyr)
 ```
 
@@ -60,18 +63,11 @@ View(BathSoap2)
 ```
 
 
-```{r}
-#Dividing data into variables describe puchase behaviour and variables that describe the basis for purchase
-Purchase_behavior <- BathSoap2[,c(1:10,13:21,47)]
-Purchase_basis <- BathSoap2[,c(31:45)]
-
-```
-
 
 ```{r}
-#Ward-linking cluster on purchase behavior
+#Ward-linking cluster on normalized data
 
-d <- dist(Purchase_behavior) #Euclidean
+d <- dist(BathSoap2) #Euclidean
 summary(d)
 fit.w <- hclust(d,method="ward.D")
 fit.w$height
@@ -81,8 +77,16 @@ plot(fit.w,hang=-1,cex=0.8,main="Ward linking clusters")
 ```
 
 
+```{r}
+#Dividing data into variables that describe puchase behaviour and variables that describe the basis for purchase
+Purchase_behavior <- BathSoap2[,c(1:10,13:21,46:47)]
+Purchase_basis <- BathSoap2[,c(31:45)]
+```
+
+
 K-Means clustering on purchase behavior dataset
 ```{r}
+#install.packages("cluster")
 library(NbClust)
 set.seed(1234)
 nc <- NbClust(data = Purchase_behavior,distance = "euclidean", min.nc=2,max.nc=5,method="kmeans",index = "all", alphaBeale = 0.1)
@@ -99,6 +103,8 @@ km
 km$size
 dist(km$centers)
 
+#install.packages("factoextra")
+library(factoextra)
 library(cluster)
 #library(ggpubr)
 fviz_nbclust(Purchase_behavior, kmeans, method = "wss") + geom_vline(xintercept = 5, linetype = 2)+labs(subtitle = "Elbow method")
@@ -161,7 +167,7 @@ looking at all three data sets
 
 p1 <- fviz_cluster(km, geom = "point",   data=Purchase_behavior) + ggtitle("k = 5")
 p2 <- fviz_cluster(km1, geom = "point",  data = Purchase_basis) + ggtitle("k = 2")
-p3 <- fviz_cluster(km2, geom = "point",  data = BathSoap2[,c(1:10,13:21,31:45,47)]) + ggtitle("k = 2 for combined data")
+p3 <- fviz_cluster(km2, geom = "point",  data = BathSoap2[,c(1:10,13:21,31:45,47)]) + ggtitle("k=2 combined data")
 
 library(gridExtra)
 grid.arrange(p1, p2, p3, nrow = 2)
@@ -174,19 +180,16 @@ BathSoap3<-BathSoap2[,c(1:10,13:21,31:45,47)]
 Based on this we see that the cluster with the combined data gives the higest degree of separation between clusters making it the best segmentation criteria.
 characteristics of the thrid cluster
 
-The third dataset is best to create clusters since,the distance/separation between the clusters is high and there is least overlap between clusters.
-
-
-
+The combined cluster dataset is best to create clusters because there is a clearly clearly defined separation between clusters.It also considers most of the variables.
 
 
 ```{r}
-#Model Prediction using the best cluster on a sample test data of the firrst 40 rows.
+#Model Prediction using the best cluster on a sample test dataset (first 50 rows).
 #install.packages("FNN")
 #install.packages("flexclust")
 library(FNN)
 library(flexclust)
-testdata<-BathSoap3[1:40,]
+testdata<-BathSoap3[1:50,]
 pred.knn <- get.knnx(km2$centers, testdata, 1)$nn.index[,1]
 pred.knn
 
